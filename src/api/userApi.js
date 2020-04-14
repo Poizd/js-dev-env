@@ -30,5 +30,4 @@ function onSuccess(response) {
 }
 
 function onError(response) {
-  console.log(error); /* eslint-disable no-consol */
-}
+  console.log(error); // eslint-disable-line no-console

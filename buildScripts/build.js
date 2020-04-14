@@ -29,4 +29,6 @@ console.log(`Webpack stats: ${stats}`);
 
 // if we got this far, the build succeeeded
 console.log(chalk.green('Your app has been built for prod and written to /dist!'));
+
+return 0;
 });

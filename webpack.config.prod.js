@@ -1,39 +1,54 @@
-import path from 'path';
-import webpack from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import WebpackMd5Hash from 'webpack-md5-hash';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import webpack from "webpack";
+import path from "path";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import WebpackMd5Hash from "webpack-md5-hash";
+import ExtractTextPlugin from "extract-text-webpack-plugin";
 
 export default {
-  debug: true,
-  devtool: 'source-map',
-  noInfo: false,
-  entry: {
-    vendor: path.resolve(__dirname, 'src/vendor'),
-    main: path.resolve(__dirname, 'src/index')
+  mode: "production",
+  resolve: {
+    extensions: ["*", ".js", ".json"]
   },
-  target: 'web',
+  devtool: "source-map",
+  entry: {
+    vendor: path.resolve(__dirname, "src/vendor"),
+    main: path.resolve(__dirname, "src/index")
+  },
+  target: "web",
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    publicPath: '/',
-    filename: '[name].[chunkhash].js'
+    path: path.resolve(__dirname, "dist"),
+    publicPath: "/",
+    filename: "[name].[chunkhash].js"
+  },
+  // Webpack 4 removed the commonsChunkPlugin. Use optimization.splitChunks instead.
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendor",
+          chunks: "all"
+        }
+      }
+    }
   },
   plugins: [
-    // Generate an external css file with a hash in the fielname
-    new ExtractTextPlugin('[name].[contenthash].css'),
-
-    // Hassshhh
-    new WebpackMd5Hash(),
-
-    // Use CommensChunkPlugin to create a separate bundle
-    // of vendor libraies
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor'
+    // Global loader configuration
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false,
+      noInfo: true // set to false to see a list of every file being bundled.
     }),
 
-    // Create HTML file that includes reference to bundle JS
+    // Generate an external css file with a hash in the filename
+    new ExtractTextPlugin("[name].[md5:contenthash:hex:20].css"),
+
+    // Hash the files using MD5 so that their names change when the content changes.
+    new WebpackMd5Hash(),
+
+    // Create HTML file that includes reference to bundled JS.
     new HtmlWebpackPlugin({
-      template: 'src/index.html',
+      template: "src/index.html",
       minify: {
         removeComments: true,
         collapseWhitespace: true,
@@ -42,23 +57,23 @@ export default {
         removeEmptyAttributes: true,
         removeStyleLinkTypeAttributes: true,
         keepClosingSlash: true,
-        minifyCSS:true,
         minifyJS: true,
-        minifyURLs:true
+        minifyCSS: true,
+        minifyURLs: true
       },
-      inject: true
-    }),
-
-    //Eliminate duplicate packages when generating undle
-    new webpack.optimize.DedupePlugin(),
-
-    //Minify js
-    new webpack.optimize.UglifyJsPlugin()
+      inject: true,
+      // Properties you define here are available in index.html
+      // using htmlWebpackPlugin.options.varName
+      //trackJSToken: "INSERT YOUR TOKEN HERE"
+    })
   ],
   module: {
-    loaders: [
-      {test: /\.js$/, exclude: /node_modules/, loaders: ['babel']},
-      {test: /\.css$/, loader: ExtractTextPlugin.extract('css?sourceMap')}
+    rules: [
+      { test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" },
+      {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract("css-loader?sourceMap")
+      }
     ]
   }
-}
+};
